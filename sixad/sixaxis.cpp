@@ -15,14 +15,16 @@
  *
  */
 
+#include "sharedmem.h"
 #include "sixaxis.h"
 #include "uinput.h"
 #include "shared.h"
 
-#include <unistd.h>
+
 #include <syslog.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 
 double dt, rc_dd, alpha_dd, rc_d, alpha_d, rc, alpha;
 
@@ -52,8 +54,9 @@ int last_ib1 = 0;
 int last_ib2 = 0;
 int last_ib3 = 0;
 
-void do_joystick(int fd, unsigned char* buf, struct dev_joystick joystick)
+void do_joystick(int fd, unsigned char* buf, struct dev_joystick joystick, SharedMemory& shm)
 {
+	shm.copy(buf);
     newH.time = tv.tv_sec + tv.tv_usec*1e-6;
     newH.ax = buf[42]<<8 | buf[43];
     newH.ay = buf[44]<<8 | buf[45];
@@ -250,7 +253,6 @@ void do_input(int fd, unsigned char* buf, struct dev_input input)
     rx = buf[9] - 128;
     ry = buf[10] - 128;
 
-//    syslog(LOG_INFO, "L2: %d Pressed:%d", input.key_start,  b1 & 0x08 ? 1 : 0);
     //deadzones
     if (lx > -10 && lx < 10) lx = 0;
     if (ly > -10 && ly < 10) ly = 0;

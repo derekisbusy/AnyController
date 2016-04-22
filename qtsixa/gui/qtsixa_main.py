@@ -3,19 +3,22 @@
 
 
 # Imports
-import dbus, os, sys, mmap
+from PyQt4.QtCore import QFile, QTimer, SIGNAL, Qt
+from PyQt4.QtGui import QAction, QCursor, QIcon, QMainWindow, QMenu, QMessageBox, QSystemTrayIcon, QWizard, QPainter, QPen, QColor
 from commands import getoutput
+import dbus, os, sys, mmap, struct
 from functools import partial
-from PyQt4.QtCore import QFile, QTimer, SIGNAL
-from PyQt4.QtGui import QAction, QCursor, QIcon, QMainWindow, QMenu, QMessageBox, QSystemTrayIcon, QWizard
-# shared memory module
 import posix_ipc
+from pprint import pprint
+import random
+from time import sleep
+
 
 import shared, utils, qtsixa_about, qtsixa_manage, qtsixa_newdev, qtsixa_preferences, qtsixa_reference
 import ui_qtsixa_mainw, ui_qtsixa_sixpairw
-from pprint import pprint
 
 
+# shared memory module
 def look4Root(self):
     if not "kdesudo" in shared.ROOT and "kdesu" in shared.ROOT: #Fix for openSUSE's kdesu not echoing to terminal (opens separate session for sudo)
         return 1
@@ -73,30 +76,14 @@ class MainW(QMainWindow, ui_qtsixa_mainw.Ui_QtSixAMainW):
         self.setupUi(self)
         self.setWindowIcon(QIcon(":/icons/qtsixa.png"))
         
-        params = utils.read_params()
-        pprint(params)
-        # sixad has already created the semaphore and shared memory. 
-        # I just need to get handles to them.
-        memory = posix_ipc.SharedMemory(params["SHARED_MEMORY_NAME"])
-        semaphore = posix_ipc.Semaphore(params["SEMAPHORE_NAME"])
         
-        mapfile = mmap.mmap(memory.fd, memory.size)
-        semaphore.acquire()
-        # Once I've mmapped the file descriptor, I can close it without 
-        # interfering with the mmap. This also demonstrates that os.close() is a
-        # perfectly legitimate alternative to the SharedMemory's close_fd() method.
-        os.close(memory.fd)
-        
-        s = utils.read_from_memory(mapfile)
-        semaphore.release()
-        
-        pprint(s)
         
         self.autoListRefresh = QTimer()
         self.autoLQRefresh = QTimer()
 
         if (shared.Globals.show_warnings): func_Check_BTs(self)
 
+        self.connect(self.b_disconnect, SIGNAL('clicked()'), self.func_Disconnect)
         self.connect(self.b_disconnect, SIGNAL('clicked()'), self.func_Disconnect)
         self.connect(self.b_disconnect_all, SIGNAL('clicked()'), self.func_DiscEverything)
         self.connect(self.b_battery, SIGNAL('clicked()'), self.func_Battery)
@@ -127,7 +114,7 @@ class MainW(QMainWindow, ui_qtsixa_mainw.Ui_QtSixAMainW):
         self.connect(self.act_Ubuntu, SIGNAL('triggered()'), self.func_UbuntuForums)
         self.connect(self.act_Bug, SIGNAL('triggered()'), self.func_Report_Bug)
         self.connect(self.act_Donate, SIGNAL('triggered()'), self.func_Donate)
-        self.connect(self.act_Reference, SIGNAL('triggered()'), self.func_Reference)
+        self.connect(self.act_Reference, SIGNAL('triggered()'), self.func_Input)
         self.connect(self.act_About, SIGNAL('triggered()'), self.func_About)
 
         self.connect(self.b_game_help, SIGNAL("clicked()"), self.func_HelpGame)
@@ -140,6 +127,7 @@ class MainW(QMainWindow, ui_qtsixa_mainw.Ui_QtSixAMainW):
         self.connect(self.b_tips_signal, SIGNAL("clicked()"), self.func_Tips_signal)
         self.connect(self.b_stop_sixadraw, SIGNAL("clicked()"), self.func_Kill_sixadraw)
 
+        self.listOfDevices.doubleClicked.connect(self.funct_OpenDevice)
         self.connect(self.autoListRefresh, SIGNAL('timeout()'), self.func_UpdateListOfDevices)
         self.connect(self.autoLQRefresh, SIGNAL('timeout()'), self.func_UpdateDeviceLQ)
         self.connect(self.listOfDevices, SIGNAL('currentRowChanged(int)'), self.func_UpdateDeviceStats)
@@ -193,15 +181,53 @@ class MainW(QMainWindow, ui_qtsixa_mainw.Ui_QtSixAMainW):
 
         if not os.path.exists("/usr/sbin/hcidump"):
             self.b_battery.setVisible(False)
-
+        
+        self.color = QColor(Qt.green)
+        
+#         try:
+#             memory = posix_ipc.SharedMemory('sixaxis_controller_1')
+#     # #         semaphore = posix_ipc.Semaphore(params["SEMAPHORE_NAME"])
+#             mapfile = mmap.mmap(memory.fd, memory.size)
+#     # #         semaphore.acquire()
+#     #         # Once I've mmapped the file descriptor, I can close it without 
+#     #         # interfering with the mmap. This also demonstrates that os.close() is a
+#     #         # perfectly legitimate alternative to the SharedMemory's close_fd() method.
+#             os.close(memory.fd)
+#     #         while(True): 
+#             for i in range(0,1):
+#                 sleep(0.1)
+#                 i += 1
+#                 s = utils.read_from_memory(mapfile, 100)
+#     #             pprint(s)
+#     #             pprint(s[5:9])
+#                 out = ['rx:' + str(struct.unpack("B", s[9])[0]) , 'ry:' + str(struct.unpack("B", s[10])[0]) , 'lx:' + str(struct.unpack("B", s[7])[0]) , 'ly:' + str(struct.unpack("B", s[8])[0])];
+#                 pprint(out)
+#         except:
+#             e = sys.exc_info()[0]
+#             print( "Error: %s" % e )
+#         semaphore.release()
 
     def func_Sixpair(self):
-      SixpairW().exec_()
+        SixpairW().exec_()
+
+    def funct_OpenDevice(self, index):
+        QMessageBox.information(self, self.tr("QtSixA - Device"), self.tr(self.listOfDevices.currentItem().text()))
+    
+    def drawPoints(self, qp):
+      
+        qp.setPen(Qt.red)
+        size = self.size()
+        
+        for i in range(1000):
+            x = random.randint(1, size.width()-1)
+            y = random.randint(1, size.height()-1)
+            qp.drawPoint(x, y)  
+        
 
     def func_RestoreDef(self):
-      os.system("rm -rf $HOME/.qtsixa2")
-      os.system("rm -rf /var/lib/sixad/*")
-      QMessageBox.information(self, self.tr("QtSixA - Information"), self.tr("Please restart QtSixA Now"))
+        os.system("rm -rf $HOME/.qtsixa2")
+        os.system("rm -rf /var/lib/sixad/*")
+        QMessageBox.information(self, self.tr("QtSixA - Information"), self.tr("Please restart QtSixA Now"))
 
     def func_Debug(self):
       if (os.path.exists("/etc/default/sixad")):
@@ -291,6 +317,9 @@ class MainW(QMainWindow, ui_qtsixa_mainw.Ui_QtSixAMainW):
       self.func_refreshDevProfile()
 
     def func_Preferences(self):
+      qtsixa_preferences.PreferencesW().exec_()
+    
+    def func_Input(self):
       qtsixa_preferences.PreferencesW().exec_()
 
     def func_Manual(self):

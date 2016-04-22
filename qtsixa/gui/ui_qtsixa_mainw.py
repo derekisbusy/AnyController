@@ -2,12 +2,15 @@
 
 # Form implementation generated from reading ui file './gui/ui/qtsixa_mainw.ui'
 #
-# Created: Sat Apr  2 22:18:55 2016
+# Created: Wed Apr 20 03:15:47 2016
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+
+from widget_sixaxis import InputDockWidget
+
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -26,7 +29,7 @@ except AttributeError:
 class Ui_QtSixAMainW(object):
     def setupUi(self, QtSixAMainW):
         QtSixAMainW.setObjectName(_fromUtf8("QtSixAMainW"))
-        QtSixAMainW.resize(710, 462)
+        QtSixAMainW.resize(935, 513)
         self.centralwidget = QtGui.QWidget(QtSixAMainW)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
@@ -500,8 +503,15 @@ class Ui_QtSixAMainW(object):
         self.tabWidget.addTab(self.advanced, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
         QtSixAMainW.setCentralWidget(self.centralwidget)
+        self.dockWidget = InputDockWidget(QtSixAMainW)
+        self.dockWidget.setMinimumSize(QtCore.QSize(400, 400))
+        self.dockWidget.setObjectName(_fromUtf8("dockWidget"))
+        self.dockWidgetContents = QtGui.QWidget()
+        self.dockWidgetContents.setObjectName(_fromUtf8("dockWidgetContents"))
+        self.dockWidget.setWidget(self.dockWidgetContents)
+        QtSixAMainW.addDockWidget(QtCore.Qt.DockWidgetArea(1), self.dockWidget)
         self.menubar = QtGui.QMenuBar(QtSixAMainW)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 710, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 935, 25))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_Help = QtGui.QMenu(self.menubar)
         self.menu_Help.setObjectName(_fromUtf8("menu_Help"))
@@ -769,6 +779,7 @@ class Ui_QtSixAMainW(object):
         self.b_apply_hidraw.setStatusTip(_translate("QtSixAMainW", "Start sixad-raw", None))
         self.b_apply_hidraw.setText(_translate("QtSixAMainW", "Apply", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.advanced), _translate("QtSixAMainW", "Advanced", None))
+        self.dockWidget.setWindowTitle(_translate("QtSixAMainW", "DockWidget", None))
         self.menu_Help.setTitle(_translate("QtSixAMainW", "&Help", None))
         self.menuWeb_Links.setTitle(_translate("QtSixAMainW", "&Web && Links", None))
         self.menu_Task.setTitle(_translate("QtSixAMainW", "&Tasks", None))
@@ -804,5 +815,3 @@ class Ui_QtSixAMainW(object):
         self.act_ManageProf.setText(_translate("QtSixAMainW", "&Manage Devices/Profiles", None))
         self.act_Debug.setText(_translate("QtSixAMainW", "Configure Debug mode", None))
         self.act_RestoreDef.setText(_translate("QtSixAMainW", "&Clear All QtSixA stuff", None))
-
-import qtsixa_rc

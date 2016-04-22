@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>710</width>
-    <height>462</height>
+    <width>935</width>
+    <height>513</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1100,13 +1100,28 @@ To start, just select the proper hidraw device and click apply.&lt;br&gt;
     </item>
    </layout>
   </widget>
+  <widget class="InputDockWidget" name="dockWidget">
+   <property name="minimumSize">
+    <size>
+     <width>400</width>
+     <height>400</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>DockWidget</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents"/>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>710</width>
-     <height>21</height>
+     <width>935</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Help">
@@ -1397,6 +1412,14 @@ To start, just select the proper hidraw device and click apply.&lt;br&gt;
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>InputDockWidget</class>
+   <extends>QDockWidget</extends>
+   <header>inputdockwidget.py</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../../icons/qtsixa.qrc"/>
  </resources>

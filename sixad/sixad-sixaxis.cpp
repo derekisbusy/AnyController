@@ -15,27 +15,34 @@
  *
  */
 
+#include <boost/interprocess/creation_tags.hpp>
+#include <boost/interprocess/detail/os_file_functions.hpp>
+#include <boost/interprocess/mapped_region.hpp>
+#include <boost/interprocess/permissions.hpp>
+#include <boost/interprocess/shared_memory_object.hpp>
 #include <linux/input.h>
 #include <linux/uinput.h>
 #include <poll.h>
 #include <pthread.h>
 #include <signal.h>
-#include <string.h>
 #include <sys/ioctl.h>
-#include <sys/mman.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <syslog.h>
 #include <unistd.h>
 #include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <ctime>
 #include <iostream>
-#include <fcntl.h>
+#include <string>
+#include <algorithm>
+
+#include "sharedmem.h"
 #include "shared.h"
 #include "sixaxis.h"
 #include "uinput.h"
-#include "configuration.cpp"
 
 int csk = 0;
 int isk = 1;
@@ -70,7 +77,7 @@ static void uinput_listen()
                         continue;
                 }
 
-                if (true) syslog(LOG_INFO, "GOT event :: type is %i; code is %i; value is %i\n", event.type, event.code, event.value);
+                if (debug) syslog(LOG_INFO, "GOT event :: type is %i; code is %i; value is %i\n", event.type, event.code, event.value);
 
                 switch (event.type) {
                 case EV_UINPUT:
@@ -180,26 +187,22 @@ static int get_time()
 
 static void process_sixaxis(struct device_settings settings, const char *mac)
 {
+	using namespace boost::interprocess;
     int br;
     bool msg = true;
     unsigned char buf[128];
+    SharedMemory shm;
+
     int last_time_action = get_time();
 
     while (!io_canceled()) {
         br = read(isk, buf, sizeof(buf));
         if (msg) {
-            syslog(LOG_INFO, "Connected 'PLAYSTATION(R)3 Controller (%s)' [Battery %02X]", mac, buf[31]);
-            msg = false;
+				syslog(LOG_INFO, "Connected 'PLAYSTATION(R)3 Controller (%s)' [Battery %02X]..", mac, buf[31]);
+				msg = false;
+				shm.open();
 
-            ConfigFile cfg("params.ini");
-            Config config = new Config;
-            config.semaphore = cfg.getValueOfKey<bool>("SEMAPHORE");
-            config.semaphore_name = cfg.getValueOfKey<const char*>("SEMAPHORE_NAME");
-            config.shared_mem_name = cfg.getValueOfKey<const char*>("SHARED_MEMORY_NAME");
-            config.ipc_permissions = cfg.getValueOfKey<unsigned int>("PERMISSIONS");
-            config.shm_size = cfg.getValueOfKey<unsigned int>("SHM_SIZE");
 
-            SharedMemory::init(config);
         }
 
         if (settings.timeout.enabled) {
@@ -223,7 +226,7 @@ static void process_sixaxis(struct device_settings settings, const char *mac)
                 break;
             }
 
-            if (settings.joystick.enabled) do_joystick(ufd->js, buf, settings.joystick);
+            if (settings.joystick.enabled) do_joystick(ufd->js, buf, settings.joystick, shm);
             if (settings.input.enabled) do_input(ufd->mk, buf, settings.input);
 
         } else if (br==50 && buf[0]==0xa1 && buf[1]==0x01 && buf[2]==0xff) {
@@ -236,9 +239,7 @@ static void process_sixaxis(struct device_settings settings, const char *mac)
             if (debug) syslog(LOG_ERR, "Non-Sixaxis packet received and ignored (0x%02x|0x%02x|0x%02x)", buf[0], buf[1], buf[2]);
         }
     }
-
-    SharedMemory::closesm();
-
+    shm.close();
     if (debug) syslog(LOG_ERR, "Read loop was broken on the Sixaxis process");
 }
 
@@ -279,7 +280,6 @@ int main(int argc, char *argv[])
 
     if (settings.rumble.enabled) {
       old_rumble_mode = settings.rumble.old_mode;
-      syslog(LOG_INFO, "Starting uinput listen thread...");
       if (pthread_create(&uinput_listen_thread, NULL, (void *(*)(void *))uinput_listen, NULL)) {
               syslog(LOG_ERR, "error starting uinput listen thread");
               return 1;

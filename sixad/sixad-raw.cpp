@@ -15,10 +15,10 @@
  *
  */
 
+#include "sharedmem.h"
 #include "shared.h"
 #include "sixaxis.h"
 #include "uinput.h"
-
 #include <unistd.h>
 #include <iostream>
 #include <fcntl.h>
@@ -30,6 +30,7 @@ int main(int argc, char **argv)
     unsigned char buf[128];
     struct uinput_fd *ufd;
     struct device_settings settings;
+    SharedMemory shm;
 
     if (argc < 2) {
         std::cout << "Usage: " << argv[0] << " /dev/hidrawX" << std::endl;
@@ -86,9 +87,10 @@ int main(int argc, char **argv)
             syslog(LOG_INFO, "Connected 'PLAYSTATION(R)3 Controller (hidraw)' [Battery %02X]", buf[31]);
             if (nr == 49) syslog(LOG_INFO, "Notice: non-standard Sixaxis buffer size (49)");
             msg = false;
+			shm.open();
         }
 
-        if (settings.joystick.enabled) do_joystick(ufd->js, buf, settings.joystick);
+        if (settings.joystick.enabled) do_joystick(ufd->js, buf, settings.joystick, shm);
         if (settings.input.enabled) do_input(ufd->mk, buf, settings.input);
     }
 
@@ -102,6 +104,7 @@ int main(int argc, char **argv)
     std::cerr <<  "sixad-raw::read(buf) - connection has been broken" << std::endl;
     
     delete ufd;
+    shm.close();
 
     return 0;
 }

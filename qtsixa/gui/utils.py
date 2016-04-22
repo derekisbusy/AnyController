@@ -38,20 +38,22 @@ def write_to_memory(mapfile, s):
     mapfile.write(s)
 
 
-def read_from_memory(mapfile):
+def read_from_memory(mapfile,size):
     """Reads a string from the mapfile and returns that string"""
     mapfile.seek(0)
     s = [ ]
     c = mapfile.read_byte()
-    while c != NULL_CHAR:
+    i = 0;
+    while i < size:
         s.append(c)
         c = mapfile.read_byte()
-            
+        i += 1
+    
     if PY_MAJOR_VERSION > 2:
         s = [chr(c) for c in s]
     s = ''.join(s)
     
-    say("read %s" % s)
+#     say("read %s" % s)
     
     return s
 

@@ -15,8 +15,11 @@
  *
  */
 
+
 #ifndef SIXAXIS_H
 #define SIXAXIS_H
+
+#include "sharedmem.h"
 
 #define INPUT_TYPE_KEYS  2
 #define INPUT_TYPE_MOUSE 3
@@ -48,7 +51,7 @@ struct rumble_effect {
     int timeout;
 };
 
-void do_joystick(int fd, unsigned char* buf, struct dev_joystick joystick);
+void do_joystick(int fd, unsigned char* buf, struct dev_joystick joystick, SharedMemory &shm);
 void do_input(int fd, unsigned char* buf, struct dev_input input);
 void do_rumble(int csk, int led_n, int weak, int strong, int timeout);
 

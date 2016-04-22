@@ -18,7 +18,6 @@
 #include "shared.h"
 #include "sixaxis.h"
 #include "uinput.h"
-
 #include <unistd.h>
 #include <cstdio>
 #include <cstring>

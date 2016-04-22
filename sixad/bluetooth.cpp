@@ -216,7 +216,7 @@ void l2cap_accept(int ctl, int csk, int isk, int debug, int legacy)
 #endif
 
     if (!legacy && req.vendor == 0x054c && req.product == 0x0268) {
-        if (debug) syslog(LOG_INFO, "Will initiate Sixaxis now...");
+        if (debug) syslog(LOG_INFO, "Will initiate Sixaxis now");
 
         // New proccess for sixad-sixaxis
         pid_t pid = fork();

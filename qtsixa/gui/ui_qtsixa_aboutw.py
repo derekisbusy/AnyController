@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file './gui/ui/qtsixa_aboutw.ui'
 #
-# Created: Sat Apr  2 22:18:55 2016
+# Created: Wed Apr 20 03:15:47 2016
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!

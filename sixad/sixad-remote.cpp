@@ -18,7 +18,6 @@
 #include "shared.h"
 #include "remote.h"
 #include "uinput.h"
-
 #include <unistd.h>
 #include <cstdlib>
 #include <iostream>

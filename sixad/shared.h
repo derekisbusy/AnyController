@@ -15,8 +15,6 @@
  *
  */
 
-#include <semaphore.h>
-
 #ifndef SHARED_H
 #define SHARED_H
 
@@ -87,11 +85,5 @@ struct device_settings init_values(const char *mac);
 
 int get_joystick_number();
 void enable_sixaxis(int csk);
-
-
-int release_semaphore(sem_t *pSemaphore, int live_dangerously);
-int acquire_semaphore(sem_t *pSemaphore, int live_dangerously);
-void get_current_time(char *s);
-
 
 #endif // SHARED_H

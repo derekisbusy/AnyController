@@ -16,19 +16,13 @@
  */
 
 #include "bluetooth.h"
-#include "shared.cpp"
-#include "configuration.cpp"
-#include "sixad-bin.h"
+#include "shared.h"
 
 #include <iostream>
 #include <signal.h>
 #include <stdlib.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <sstream>
-
-#define SSTR( x ) static_cast< std::ostringstream & >( \
-        ( std::ostringstream() << std::dec << x ) ).str()
 
 #if 0
 #include <sys/ioctl.h>
@@ -50,14 +44,6 @@ static void sig_hup(int sig)
 {
 }
 
-//unsigned int Config::iterations = 1000;
-//bool Config::semaphore = true;
-//const char* Config::semaphore_name = "/sixaxis_data_semaphore";
-//const char* Config::shared_mem_name = "/sixaxis_data_share";
-//unsigned int Config::ipc_permissions = 0x0600;
-//unsigned int Config::shm_size = 4096;
-
-
 int main(int argc, char *argv[])
 {
     struct sigaction sa;
@@ -72,6 +58,7 @@ int main(int argc, char *argv[])
       std::cerr << argv[0] << " requires 'sixad'. Please run sixad instead" << std::endl;
       return 1;
     }
+
 
 #if 0
     // Enable all bluetooth adapters
@@ -96,14 +83,6 @@ int main(int argc, char *argv[])
     open_log("sixad-bin");
     syslog(LOG_INFO, "started");
     bacpy(&bdaddr, BDADDR_ANY);
-
-    syslog(LOG_INFO, "ITERATIONS=%d", Config::iterations);
-    syslog(LOG_INFO, "SEMAPHORE=%s", Config::semaphore ? "TRUE" : "FALSE");
-    syslog(LOG_INFO, "SEMAPHORE_NAME=%s", Config::semaphore_name);
-    syslog(LOG_INFO, "SHARED_MEMORY_NAME=%s", Config::shared_mem_name);
-    syslog(LOG_INFO, "PERMISSIONS=%d", Config::ipc_permissions);
-    syslog(LOG_INFO, "SHM_SIZE=%d", Config::shm_size);
-
 
     ctl = socket(AF_BLUETOOTH, SOCK_RAW, BTPROTO_HIDP);
     if (ctl < 0) {
